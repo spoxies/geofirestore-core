@@ -1,4 +1,5 @@
-import {distance as calcDistance, hash, validateHash} from 'geokit';
+import { QueryDocumentSnapshot } from '@google-cloud/firestore';
+import { distance as calcDistance, distance, hash, validateHash } from 'geokit';
 
 import {validateLocation, validateGeoDocument} from './api/validate';
 import {GeoFirestoreTypes} from './definitions';
@@ -125,7 +126,7 @@ export function decodeGeoQueryDocumentSnapshotData(
 ): {data: () => GeoFirestoreTypes.GeoDocumentData; distance: number} {
   if (validateGeoDocument(data, true)) {
     const distance = center ? calculateDistance(data.g.geopoint, center) : null;
-    return {data: () => data, distance};
+    return {data: () => data, distance: distance};
   }
   return {data: () => data, distance: null};
 }
@@ -191,8 +192,9 @@ export function findGeoPoint(
 }
 
 /**
- * Creates GeoFirestore QueryDocumentSnapshot by pulling data out of original Firestore QueryDocumentSnapshot and strip GeoFirsetore
- * Document data, such as geohash and coordinates.
+ * Creates GeoFirestore QueryDocumentSnapshot by pulling data out of original 
+ * Firestore QueryDocumentSnapshot and strip GeoFirestore Document data, such 
+ * as geohash and coordinates.
  *
  * @param snapshot The QueryDocumentSnapshot.
  * @param center The center to calculate the distance of the Document from the query origin.
@@ -200,6 +202,7 @@ export function findGeoPoint(
  */
 export function generateGeoQueryDocumentSnapshot(
   snapshot:
+    | any
     | GeoFirestoreTypes.web.QueryDocumentSnapshot
     | GeoFirestoreTypes.cloud.QueryDocumentSnapshot,
   center?: GeoFirestoreTypes.web.GeoPoint | GeoFirestoreTypes.cloud.GeoPoint
@@ -208,10 +211,25 @@ export function generateGeoQueryDocumentSnapshot(
     snapshot.data() as GeoFirestoreTypes.GeoDocumentData,
     center
   );
+
   return {
+    ...snapshot,
+    ...decoded,
     exists: snapshot.exists,
     id: snapshot.id,
-    ...decoded,
+    ref: snapshot.ref,
+    get: (fieldPath:
+      | string
+      | GeoFirestoreTypes.cloud.FieldPath
+      | GeoFirestoreTypes.web.FieldPath,
+    ): any => snapshot.get(fieldPath),
+    isEqual: (
+      other:
+        | QueryDocumentSnapshot
+        | GeoFirestoreTypes.cloud.DocumentSnapshot
+        | GeoFirestoreTypes.web.DocumentSnapshot
+    ): boolean => snapshot.isEqual(other)
+
   };
 }
 

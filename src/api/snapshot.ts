@@ -14,7 +14,7 @@ export class GeoQuerySnapshot {
 
   /**
    * @param _querySnapshot The `QuerySnapshot` instance.
-   * @param geoQueryCriteria The center and radius of geo based queries.
+   * @param _center The center and radius of geo based queries.
    */
   constructor(
     private _querySnapshot:
@@ -28,11 +28,11 @@ export class GeoQuerySnapshot {
       // Validate the _center coordinates
       validateLocation(_center);
     }
-
+    
     this._docs = (
-      _querySnapshot as GeoFirestoreTypes.cloud.QuerySnapshot
-    ).docs.map((snapshot: GeoFirestoreTypes.cloud.QueryDocumentSnapshot) =>
-      generateGeoQueryDocumentSnapshot(snapshot, _center)
+      _querySnapshot.docs as GeoFirestoreTypes.cloud.QueryDocumentSnapshot[]
+    ).map((snapshot: GeoFirestoreTypes.cloud.QueryDocumentSnapshot) =>
+        generateGeoQueryDocumentSnapshot(snapshot, _center)
     );
   }
 
@@ -93,6 +93,6 @@ export class GeoQuerySnapshot {
     callback: (result: GeoFirestoreTypes.QueryDocumentSnapshot) => void,
     thisArg?: any
   ): void {
-    this.docs.forEach(callback, thisArg);
+    this._docs.forEach(callback, thisArg);
   }
 }

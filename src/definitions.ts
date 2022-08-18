@@ -66,7 +66,7 @@ export namespace GeoFirestoreTypes {
     limit?: number;
   }
   /**
-   * A `QueryDocumentSnapshot` contains data read from a document in your
+   * A `QueryDocumentSnapshot` contains snapshot data from a Firestore database
    * Firestore database as part of a query. The document is guaranteed to exist
    * and its data can be extracted with `.data()` or `.get(<field>)` to get a
    * specific field.
@@ -77,6 +77,79 @@ export namespace GeoFirestoreTypes {
    * 'undefined'.
    */
   export interface QueryDocumentSnapshot<T = GeoDocumentData> {
+
+    /**
+     * Property of the `DocumentSnapshot` that signals whether or not the data
+     * exists. True if the document exists.
+     */
+    readonly exists: boolean;
+
+    /**
+     * Retrieves all fields in the document as an Object.
+     *
+     * By default, `FieldValue.serverTimestamp()` values that have not yet been
+     * set to their final value will be returned as `null`. You can override
+     * this by passing an options object.
+     *
+     * @return An Object containing all fields in the document.
+     */
+    data: () => T;
+
+    /**
+     * Distance in Km from center of geoquery.
+     */
+    distance: number;
+
+
+    /**
+     * The `DocumentReference` for the document included in the `DocumentSnapshot`.
+     */
+    readonly ref: web.DocumentReference | cloud.DocumentReference;
+    /**
+     * Property of the `DocumentSnapshot` that provides the document's ID.
+     */
+    readonly id: string;
+
+    /**
+     * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
+     * document or field doesn't exist.
+     *
+     * By default, a `FieldValue.serverTimestamp()` that has not yet been set to
+     * its final value will be returned as `null`. You can override this by
+     * passing an options object.
+     *
+     * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
+     * @param options An options object to configure how the field is retrieved
+     * from the snapshot (e.g. the desired behavior for server timestamps that have
+     * not yet been set to their final value).
+     * @return The data at the specified field location or undefined if no such
+     * field exists in the document.
+     */
+    get(fieldPath: string | cloud.FieldPath | web.FieldPath, options?: SnapshotOptions): any;
+
+    /**
+     * Returns true if this `DocumentSnapshot` is equal to the provided one.
+     *
+     * @param other The `DocumentSnapshot` to compare against.
+     * @return true if this `DocumentSnapshot` is equal to the provided one.
+     */
+    isEqual(other: QueryDocumentSnapshot<T>): boolean;
+
+
+
+  }
+
+  /**
+   * `QueryDocumentSnapshotData` contains data read from a document in your
+   * Firestore database as part of a query. The document is guaranteed to exist
+   * and its data can be extracted with `.data()`
+   *
+   * `QueryDocumentSnapshotData` offers some of the same API surface as a
+   * `DocumentSnapshot`. Since query results contain only existing documents, the
+   * `exists` property will always be true and `data()` will never return
+   * 'undefined'.
+   */
+  export interface QueryDocumentSnapshotData<T = GeoDocumentData> {
     /**
      * Property of the `DocumentSnapshot` that signals whether or not the data
      * exists. True if the document exists.
@@ -224,8 +297,7 @@ export namespace GeoFirestoreTypes {
      * `exists` property will always be true and `data()` will never return
      * 'undefined'.
      */
-    export type QueryDocumentSnapshot =
-      firebase.firestore.QueryDocumentSnapshot;
+    export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
     /**
      * A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects
      * representing the results of a query. The documents can be accessed as an
